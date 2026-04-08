@@ -1,161 +1,188 @@
 package PP03;
 import java.awt.BorderLayout;
 import java.awt.Container;
-import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-
+import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import java.util.Date;
+import java.text.SimpleDateFormat;
 
 public class UserGUI extends JPanel {
-	
-	 private JLabel label1;
-	  private JLabel label2;
-	  private JTextField field1;
-	  private JTextField field2;
-	  private JButton TransferButton;
-	  private JButton CloseButton;
-	  private JTextArea textArea;
-	  private JComboBox combList;
-	  private JScrollPane jp;
-	  private PayRoll payRoll;
-	  private String fileName = "PayRoll.txt";
+    private JLabel idLabel, fNameLabel, lNameLabel, streetLabel, houseNumLabel, cityLabel, zipLabel;
+    private JLabel startDateLabel, endDateLabel;
+    private JTextField idField, fNameField, lNameField;
+    private JTextField streetField, houseNumField, cityField, zipField;
+    private JTextField startDateField, endDateField;
+    
+    private JComboBox<String> stateCombo;
+    private JRadioButton fullTimeBtn, hourlyBtn;
+    private ButtonGroup statusGroup;
+    
+    private JButton addEmployeeBtn; 
+    private JButton CloseButton;
+    private JTextArea textArea;
+    private JScrollPane jp;
+    
+    private PayRoll payRoll;
+    private String fileName = "PayRoll.txt";
 	  
-	  public UserGUI() {
-		  
-                 // prompt the user to input the number of pay records
-                 int n; // is the number of pay records for employees
-		 payRoll = new PayRoll(fileName,n);
+    public UserGUI() {
+        // Note: 'n' needs a value. Setting to 10 as a placeholder.
+        int n = 10; 
+        payRoll = new PayRoll(fileName, n);
 
-	    initGUI();
-	    doTheLayout();
+        initGUI();
+        doTheLayout();
 
-	    TransferButton.addActionListener( new java.awt.event.ActionListener() {
-	        public void actionPerformed(ActionEvent e){
-	            transfer();
-	            }
-	    });
-	    
-	    CloseButton.addActionListener( new java.awt.event.ActionListener() {
-	        public void actionPerformed(ActionEvent e){
-	            close();
-	            }
-	    });
-	    
-	    combList.addActionListener( new java.awt.event.ActionListener() {
-	        public void actionPerformed(ActionEvent e){
-	            //transfer_actionPerformed(e);
-	        	updateTextarea();
-	            
-	            }
-	    });
+        addEmployeeBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                transfer();
+            }
+        });
+        
+        CloseButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                close();
+            }
+        });
+    }
 
-	  } // end of constructor
+    private void initGUI(){
+        // Employee Info
+        idLabel = new JLabel("Employee ID:");
+        idField = new JTextField(10);
+        fNameLabel = new JLabel("First Name:");
+        fNameField = new JTextField(15);
+        lNameLabel = new JLabel("Last Name:");
+        lNameField = new JTextField(15);
 
-	  private void initGUI(){
-	      
-		  label1 = new JLabel("Type some text here:");
-	      label2 = new JLabel("Your text will appear here:");
-	      field1 = new JTextField("This is the default text", 30);
-	      field2 = new JTextField(30);
-	      textArea = new JTextArea(5, 15);
-	      textArea.setEditable(false);
-	      textArea.setLineWrap(true);
-	      textArea.setWrapStyleWord(true);
-	      
-	      // testing
-	      textArea.append("This is an editable JTextArea. " +
-	    		    "A text area is a \"plain\" text component, " +
-	    		    "which means that although it can display text " +
-	    		    "in any font, all of the text is in the same font.");
-	      
-	      jp = new JScrollPane(textArea);
-	      
-	      String[] listStrings = { "","Laptops", "Tablets", "Cell Phones" };
-	      combList = new JComboBox(listStrings);
-	      
-	      TransferButton = new JButton("Transfer");
-	      CloseButton = new JButton("Close");
-	      
-	      field2.setEditable(false);
+        // Address Info
+        streetLabel = new JLabel("Street:");
+        streetField = new JTextField(20);
+        houseNumLabel = new JLabel("House #:");
+        houseNumField = new JTextField(5);
+        cityLabel = new JLabel("City:");
+        cityField = new JTextField(15);
+        zipLabel = new JLabel("Zip Code:");
+        zipField = new JTextField(5);
 
-	  }// end of creating objects method
+        // State Selection
+        String[] states = { "CT", "NY", "NJ", "MA", "PA" };
+        stateCombo = new JComboBox<>(states);
 
-	  private void doTheLayout(){
+        // Status Selection
+        fullTimeBtn = new JRadioButton("Full Time", true);
+        hourlyBtn = new JRadioButton("Hourly");
+        statusGroup = new ButtonGroup();
+        statusGroup.add(fullTimeBtn);
+        statusGroup.add(hourlyBtn);
 
-	      JPanel top = new JPanel();
-	      JPanel center = new JPanel();
-	      JPanel bottom = new JPanel();
+        // Timing Components 
+        startDateLabel = new JLabel("Start Date (MM/dd/yyyy):");
+        startDateField = new JTextField(10);
+        endDateLabel = new JLabel("End Date (MM/dd/yyyy):");
+        endDateField = new JTextField(10);
 
-	      top.setLayout( new FlowLayout());
-	      top.add(label1);
-	      top.add(field1);
-	      top.add(combList);
+        // Results Area
+        textArea = new JTextArea(10, 30);
+        textArea.setEditable(false);
+        jp = new JScrollPane(textArea);
 
-	      center.setPreferredSize( new Dimension( 10, 155 ) );
-	      center.setLayout( new GridLayout(2,2));
-	      center.add(label2);
-	      center.add(field2);
-	      center.add(new JLabel(""));
-	      center.add(jp);
+        // Buttons
+        addEmployeeBtn = new JButton("Add Employee");
+        CloseButton = new JButton("Close");
+    }
 
-	      bottom.setLayout( new FlowLayout());
-	      bottom.add(TransferButton);
-	      bottom.add(CloseButton);
+    private void doTheLayout(){
+        JPanel inputPanel = new JPanel(new GridLayout(0, 2, 10, 5));
+        inputPanel.setBorder(BorderFactory.createTitledBorder(
+    BorderFactory.createEtchedBorder(), "Employee Information"));
 
-	      setLayout( new BorderLayout());
-	      add(top, "North");
-	      add(center, "Center");
-	      add(bottom, "South");
+        inputPanel.add(idLabel);        inputPanel.add(idField);
+        inputPanel.add(fNameLabel);     inputPanel.add(fNameField);
+        inputPanel.add(lNameLabel);     inputPanel.add(lNameField);
+        inputPanel.add(streetLabel);    inputPanel.add(streetField);
+        inputPanel.add(houseNumLabel);  inputPanel.add(houseNumField);
+        inputPanel.add(cityLabel);      inputPanel.add(cityField);
+        inputPanel.add(new JLabel("State:")); inputPanel.add(stateCombo);
+        inputPanel.add(zipLabel);       inputPanel.add(zipField);
+        inputPanel.add(startDateLabel); inputPanel.add(startDateField);
+        inputPanel.add(endDateLabel);   inputPanel.add(endDateField);
+		
+        inputPanel.add(new JLabel("Status:"));
+        JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        radioPanel.add(fullTimeBtn);
+        radioPanel.add(hourlyBtn);
+        inputPanel.add(radioPanel);
 
-	  }// end of Layout method
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(addEmployeeBtn);
+        buttonPanel.add(CloseButton);
 
-	 
-	  void transfer(){
-	        String mytext = field1.getText();
-	        field2.setText(mytext);
-	  }// end of transfer action event method
-	  
-	  void updateTextarea(){
-		  
-		 		 
-		  if(combList.getSelectedItem().toString().compareToIgnoreCase("") == 0)
-			  textArea.append("This is an editable JTextArea. " +
-		    		    "A text area is a \"plain\" text component, " +
-		    		    "which means that although it can display text " +
-		    		    "in any font, all of the text is in the same font.");
-			 else if (combList.getSelectedItem().toString().compareToIgnoreCase( "Laptops") == 0)
-				 textArea.setText("You have selected Laptops item name");
-			 else if (combList.getSelectedItem().toString().compareToIgnoreCase("Tablets") == 0)
-				 textArea.setText("You have not selected Tablets item name");
-			 else if (combList.getSelectedItem().toString().compareToIgnoreCase("Cell Phones") == 0)
-				 textArea.setText("You have not selected Cell Phones item name");
-		  
-	  }
+        setLayout(new BorderLayout());
+        add(inputPanel, BorderLayout.NORTH);
+        add(jp, BorderLayout.CENTER);
+        add(buttonPanel, BorderLayout.SOUTH);
+    }
 
-	  void close(){
-	      System.exit(0);
-	  }// end of transfer action event method
+    void transfer() {
+		// 1. Setup the date formatter to match label hint
+		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+		sdf.setLenient(false); // Make sure '13/45/2026' is rejected
 
+		try {
+			// 2. Parse the text into Date objects
+			Date start = sdf.parse(startDateField.getText());
+			Date end = sdf.parse(endDateField.getText());
 
-	public static void main(String[] args) {
-	   JFrame f = new JFrame("Pay Roll");
-        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        Container contentPane = f.getContentPane();
-        contentPane.add( new UserGUI());
-        f.pack();
-        //setSize(200, 200);
-        f.setVisible(true);
+			// 3. Validation: End date must be after start date
+			if (!end.after(start)) {
+				textArea.append("ERROR: End date must be after Start date.\n");
+				return; // Stop here if date is invalid
+			}
 
+			// 4. Validation: At least one day long (24 hours)
+			long diffInMillies = Math.abs(end.getTime() - start.getTime());
+			long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
 
+			if (diffInDays < 1) {
+				textArea.append("ERROR: Pay period must be at least 1 day.\n");
+				return;
+			}
+
+			// 5. Success! Now we can display the info
+			textArea.append("Successfully validated period for " + fNameField.getText() + "\n");
+			textArea.append("Duration: " + diffInDays + " days.\n");
+
+		} catch (Exception ex) {
+			textArea.append("ERROR: Invalid date format. Please use MM/dd/yyyy.\n");
+		}
 	}
+	  
+    void updateTextarea(){
+        // Logic for refreshing display goes here
+    }
 
+    void close(){
+        System.exit(0);
+    }
+
+    public static void main(String[] args) {
+        JFrame f = new JFrame("Pay Roll");
+        f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        f.getContentPane().add(new UserGUI());
+        f.pack();
+        f.setVisible(true);
+    }
 }
