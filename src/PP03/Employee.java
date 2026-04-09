@@ -1,7 +1,7 @@
 package PP03;
 
 
-public class Employee {
+public class Employee extends Person {
 	
 	private int eID;
     private Status empStatus;
