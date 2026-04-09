@@ -17,6 +17,7 @@ import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.awt.Font;
 
 public class UserGUI extends JPanel {
     private JLabel idLabel, fNameLabel, lNameLabel, streetLabel, houseNumLabel, cityLabel, zipLabel;
@@ -36,6 +37,9 @@ public class UserGUI extends JPanel {
     
     private PayRoll payRoll;
     private String fileName = "PayRoll.txt";
+
+    private JLabel salaryLabel, rateLabel;
+    private JTextField salaryField, rateField;  
 	  
     public UserGUI() {
         // Note: 'n' needs a value. Setting to 10 as a placeholder.
@@ -96,12 +100,19 @@ public class UserGUI extends JPanel {
 
         // Results Area
         textArea = new JTextArea(10, 30);
+        textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         textArea.setEditable(false);
         jp = new JScrollPane(textArea);
 
         // Buttons
         addEmployeeBtn = new JButton("Add Employee");
         CloseButton = new JButton("Close");
+
+        //Salary/Rate
+        salaryLabel = new JLabel("Monthly Salary:");
+        salaryField = new JTextField(10);
+        rateLabel = new JLabel("Hourly Rate:");
+        rateField = new JTextField(10);
     }
 
     private void doTheLayout(){
@@ -119,6 +130,8 @@ public class UserGUI extends JPanel {
         inputPanel.add(zipLabel);       inputPanel.add(zipField);
         inputPanel.add(startDateLabel); inputPanel.add(startDateField);
         inputPanel.add(endDateLabel);   inputPanel.add(endDateField);
+        inputPanel.add(salaryLabel);    inputPanel.add(salaryField);
+        inputPanel.add(rateLabel);      inputPanel.add(rateField);
 		
         inputPanel.add(new JLabel("Status:"));
         JPanel radioPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
@@ -142,7 +155,9 @@ public class UserGUI extends JPanel {
 		sdf.setLenient(false); // Make sure '13/45/2026' is rejected
 
 		try {
-			// 2. Parse the text into Date objects
+			textArea.setText(""); // Clear previous results
+            
+            // 2. Parse the text into Date objects
 			Date start = sdf.parse(startDateField.getText());
 			Date end = sdf.parse(endDateField.getText());
 
@@ -162,11 +177,39 @@ public class UserGUI extends JPanel {
 			}
 
 			// 5. Success! Now we can display the info
-			textArea.append("Successfully validated period for " + fNameField.getText() + "\n");
-			textArea.append("Duration: " + diffInDays + " days.\n");
+            textArea.append(String.format("%-18s %s\n", "Validated for:", fNameField.getText()));
+            textArea.append(String.format("%-18s %d days\n", "Duration:", diffInDays));
+
+
+            // --- 2. INTEGRATE JAMES'S MATH ---
+        TaxIncome taxCalc = new TaxIncome(); // Now works because you have the real file!
+        double grossPay = 0.0;
+
+        // Pull the pay data from your new fields
+        if (fullTimeBtn.isSelected()) {
+            grossPay = Double.parseDouble(salaryField.getText());
+        } else {
+            // Logic for hourly: Rate * 40 hours (standard)
+            grossPay = Double.parseDouble(rateField.getText()) * 40; 
+        }
+
+        // Use the methods James finished
+        double fedTax = taxCalc.compFederalTax(grossPay);
+        double stateTax = taxCalc.compStateTax(grossPay);
+        double totalTax = taxCalc.compIncomeTax(grossPay); // Calculates Fed + State
+        double netPay = grossPay - totalTax;
+
+        // --- 3. DISPLAY RESULTS ---
+        textArea.append(String.format("\n%-18s %s", "Employee Status:", (fullTimeBtn.isSelected() ? "Full Time" : "Hourly")));
+        textArea.append(String.format("\n%-18s $ %10.2f", "Gross Pay:", grossPay));
+        textArea.append(String.format("\n%-18s $ %10.2f", "Federal Tax:", fedTax));
+        textArea.append(String.format("\n%-18s $ %10.2f", "State Tax:", stateTax));
+        textArea.append(String.format("\n%-18s $ %10.2f", "Total Tax:", totalTax));
+        textArea.append("\n----------------------------------");
+        textArea.append(String.format("\n%-18s $ %10.2f\n", "Net Pay:", netPay));
 
 		} catch (Exception ex) {
-			textArea.append("ERROR: Invalid date format. Please use MM/dd/yyyy.\n");
+			textArea.append("ERROR: Check your inputs. Ensure dates are MM/dd/yyyy and pay fields are numeric.\n");
 		}
 	}
 	  
