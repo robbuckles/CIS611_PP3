@@ -254,6 +254,79 @@ public class PayRoll {
 	   
 		
 	}
-    	
+    
+   public String processPayRecordFromGUI(
+	        int id,
+	        String fName,
+	        String lName,
+	        Address addr,
+	        Status status,
+	        double salary,
+	        double rate,
+	        String startDateStr,
+	        String endDateStr
+	) {
+	    try {
+	        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+	        sdf.setLenient(false);
+
+	        Date start = sdf.parse(startDateStr);
+	        Date end = sdf.parse(endDateStr);
+
+	        if (!end.after(start)) {
+	            return "ERROR: End date must be after start date.";
+	        }
+
+	        long diff = end.getTime() - start.getTime();
+	        long days = diff / (1000 * 60 * 60 * 24);
+
+	        if (days < 1) {
+	            return "ERROR: Pay period must be at least 1 day.";
+	        }
+
+	        Employee emp = createEmployee(id, fName, lName, addr, status);
+
+	        PayPeriod period = new PayPeriod(
+	                (int)(Math.random() * 1000),
+	                start,
+	                end
+	        );
+
+	        int recordID = (int)(Math.random() * 1000);
+
+	        if (status == Status.FULLTIME) {
+
+	            int numMonths = (int)(days / 30);
+	            if (numMonths < 1) numMonths = 1;
+
+	            createPayRecord(
+	                    recordID,
+	                    emp,
+	                    0,
+	                    0,
+	                    salary,
+	                    numMonths,
+	                    period
+	            );
+
+	        } else {
+
+	            createPayRecord(
+	                    recordID,
+	                    emp,
+	                    40,
+	                    rate,
+	                    0,
+	                    0,
+	                    period
+	            );
+	        }
+
+	        return displayPayRecord();
+
+	    } catch (Exception e) {
+	        return "ERROR: Invalid input or date format.";
+	    }
+	}
 
 }
