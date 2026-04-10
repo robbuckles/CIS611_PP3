@@ -1,3 +1,19 @@
+//********************************************************************* 
+//* * 
+//* 		CIS611 Spring 2026 James Benjamin & Rob Buckles * 
+//* * 
+//* 			 Programming project  PP03 * 
+//* * 
+//*			 This project implements a payroll system to calculate the monthly/hourly pay for n employees
+//*				including the employees in the input data file “PayRoll.txt”.
+//* * 
+//* * 
+//* 				 10 APR 2026 * 
+//* * 
+//* 			 Saved in: UserGUI.java * 
+//* * 
+//********************************************************************* 
+
 package PP03;
 import java.awt.BorderLayout;
 import java.awt.Container;
