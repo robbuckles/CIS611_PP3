@@ -155,104 +155,61 @@ public class UserGUI extends JPanel {
     
     void transfer() {
 
-        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-        sdf.setLenient(false);
+        if (idField.getText().isEmpty() ||
+            fNameField.getText().isEmpty() ||
+            lNameField.getText().isEmpty() ||
+            streetField.getText().isEmpty() ||
+            houseNumField.getText().isEmpty() ||
+            cityField.getText().isEmpty() ||
+            zipField.getText().isEmpty() ||
+            startDateField.getText().isEmpty() ||
+            endDateField.getText().isEmpty()) {
+
+            textArea.append("ERROR: All fields must be filled.\n");
+            return;
+        }
 
         try {
-            textArea.append("\n--- Adding New Record ---\n");
-
-            if (idField.getText().isEmpty() ||
-                fNameField.getText().isEmpty() ||
-                lNameField.getText().isEmpty() ||
-                streetField.getText().isEmpty() ||
-                houseNumField.getText().isEmpty() ||
-                cityField.getText().isEmpty() ||
-                zipField.getText().isEmpty() ||
-                startDateField.getText().isEmpty() ||
-                endDateField.getText().isEmpty()) {
-
-                textArea.append("ERROR: All fields must be filled.\n");
-                return;
-            }
-
             int id = Integer.parseInt(idField.getText());
             int houseNum = Integer.parseInt(houseNumField.getText());
             int zip = Integer.parseInt(zipField.getText());
 
-            Date start = sdf.parse(startDateField.getText());
-            Date end = sdf.parse(endDateField.getText());
-
-            if (!end.after(start)) {
-                textArea.append("ERROR: End date must be after Start date.\n");
-                return;
-            }
-
-            long diff = end.getTime() - start.getTime();
-            long days = diff / (1000 * 60 * 60 * 24);
-
-            if (days < 1) {
-                textArea.append("ERROR: Pay period must be at least 1 day.\n");
-                return;
-            }
-
             Address addr = new Address(
-                streetField.getText(),
-                houseNum,
-                cityField.getText(),
-                stateCombo.getSelectedItem().toString(),
-                zip
+                    streetField.getText(),
+                    houseNum,
+                    cityField.getText(),
+                    stateCombo.getSelectedItem().toString(),
+                    zip
             );
 
-            Status status = fullTimeBtn.isSelected() ? Status.FULLTIME : Status.HOURLY;
+            Status status = fullTimeBtn.isSelected()
+                    ? Status.FULLTIME
+                    : Status.HOURLY;
 
-            Employee emp = payRoll.createEmployee(
-                id,
-                fNameField.getText(),
-                lNameField.getText(),
-                addr,
-                status
-            );
+            double salary = salaryField.getText().isEmpty()
+                    ? 0
+                    : Double.parseDouble(salaryField.getText());
 
-            PayPeriod period = new PayPeriod(1, start, end);
+            double rate = rateField.getText().isEmpty()
+                    ? 0
+                    : Double.parseDouble(rateField.getText());
 
-            int recordID = (int)(Math.random() * 1000);
-
-            if (status == Status.FULLTIME) {
-
-                double salary = Double.parseDouble(salaryField.getText());
-
-                int numMonths = (int)(days / 30);
-                if (numMonths == 0) numMonths = 1;
-
-                payRoll.createPayRecord(
-                    recordID, emp,
-                    0, 0,
+            String result = payRoll.processPayRecordFromGUI(
+                    id,
+                    fNameField.getText(),
+                    lNameField.getText(),
+                    addr,
+                    status,
                     salary,
-                    numMonths,
-                    period
-                );
-
-            } else {
-
-                double rate = Double.parseDouble(rateField.getText());
-
-                payRoll.createPayRecord(
-                    recordID, emp,
-                    40,
                     rate,
-                    0, 0,
-                    period
-                );
-            }
+                    startDateField.getText(),
+                    endDateField.getText()
+            );
 
-            // ✅ Refresh display cleanly
-            textArea.setText(payRoll.displayPayRecord());
+            textArea.setText(result);
 
         } catch (NumberFormatException e) {
-            textArea.append("ERROR: Numeric fields must be valid numbers.\n");
-
-        } catch (Exception e) {
-            textArea.append("ERROR: Invalid input. Check date format.\n");
+            textArea.append("ERROR: Invalid numeric input.\n");
         }
     }
 //    void transfer() {
