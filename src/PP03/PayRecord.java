@@ -74,6 +74,32 @@ public class PayRecord {
     	    return gross - tax;
   }
   
- 
+     @Override
+     public String toString(){
+
+         double gross = grossPay();
+         double tax = payTax.compIncomeTax(gross);
+         double net = netPay();
+
+         StringBuilder sb = new StringBuilder();
+
+         sb.append("Pay Record ID: ").append(rID).append("\n");
+         sb.append(employee.toString()).append("\n");
+         sb.append(payPeriod.toString()).append("\n");
+
+         if (employee.getEmpStatus() == Status.FULLTIME) {
+             sb.append("Monthly Income: ").append(montlyIncome).append("\n");
+             sb.append("Number of Months: ").append(numMonths).append("\n");
+         } else {
+             sb.append("Hours Worked: ").append(payHours).append("\n");
+             sb.append("Hourly Rate: ").append(payRate).append("\n");
+         }
+
+         sb.append(String.format("%-15s %.2f%n", "Gross Pay:", gross));
+         sb.append(String.format("%-15s %.2f%n", "Tax:", tax));
+         sb.append(String.format("%-15s %.2f%n", "Net Pay:", net));
+
+         return sb.toString();
+     }
 
 }
