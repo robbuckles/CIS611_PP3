@@ -44,10 +44,13 @@ public class UserGUI extends JPanel {
     public UserGUI() {
         // Note: 'n' needs a value. Setting to 10 as a placeholder.
         int n = 10; 
-        payRoll = new PayRoll(fileName, n);
+        payRoll = new PayRoll(fileName, 100);
 
         initGUI();
         doTheLayout();
+        
+        payRoll.readFromFile();
+        textArea.append(payRoll.displayPayRecord());
 
         addEmployeeBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(ActionEvent e){
@@ -149,69 +152,172 @@ public class UserGUI extends JPanel {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
+    
     void transfer() {
-		// 1. Setup the date formatter to match label hint
-		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-		sdf.setLenient(false); // Make sure '13/45/2026' is rejected
 
-		try {
-			textArea.setText(""); // Clear previous results
-            
-            // 2. Parse the text into Date objects
-			Date start = sdf.parse(startDateField.getText());
-			Date end = sdf.parse(endDateField.getText());
+        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+        sdf.setLenient(false);
 
-			// 3. Validation: End date must be after start date
-			if (!end.after(start)) {
-				textArea.append("ERROR: End date must be after Start date.\n");
-				return; // Stop here if date is invalid
-			}
+        try {
+            textArea.append("\n--- Adding New Record ---\n");
 
-			// 4. Validation: At least one day long (24 hours)
-			long diffInMillies = Math.abs(end.getTime() - start.getTime());
-			long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+            if (idField.getText().isEmpty() ||
+                fNameField.getText().isEmpty() ||
+                lNameField.getText().isEmpty() ||
+                streetField.getText().isEmpty() ||
+                houseNumField.getText().isEmpty() ||
+                cityField.getText().isEmpty() ||
+                zipField.getText().isEmpty() ||
+                startDateField.getText().isEmpty() ||
+                endDateField.getText().isEmpty()) {
 
-			if (diffInDays < 1) {
-				textArea.append("ERROR: Pay period must be at least 1 day.\n");
-				return;
-			}
+                textArea.append("ERROR: All fields must be filled.\n");
+                return;
+            }
 
-			// 5. Success! Now we can display the info
-            textArea.append(String.format("%-18s %s\n", "Validated for:", fNameField.getText()));
-            textArea.append(String.format("%-18s %d days\n", "Duration:", diffInDays));
+            int id = Integer.parseInt(idField.getText());
+            int houseNum = Integer.parseInt(houseNumField.getText());
+            int zip = Integer.parseInt(zipField.getText());
 
+            Date start = sdf.parse(startDateField.getText());
+            Date end = sdf.parse(endDateField.getText());
 
-            // --- 2. INTEGRATE JAMES'S MATH ---
-        TaxIncome taxCalc = new TaxIncome(); // Now works because you have the real file!
-        double grossPay = 0.0;
+            if (!end.after(start)) {
+                textArea.append("ERROR: End date must be after Start date.\n");
+                return;
+            }
 
-        // Pull the pay data from your new fields
-        if (fullTimeBtn.isSelected()) {
-            grossPay = Double.parseDouble(salaryField.getText());
-        } else {
-            // Logic for hourly: Rate * 40 hours (standard)
-            grossPay = Double.parseDouble(rateField.getText()) * 40; 
+            long diff = end.getTime() - start.getTime();
+            long days = diff / (1000 * 60 * 60 * 24);
+
+            if (days < 1) {
+                textArea.append("ERROR: Pay period must be at least 1 day.\n");
+                return;
+            }
+
+            Address addr = new Address(
+                streetField.getText(),
+                houseNum,
+                cityField.getText(),
+                stateCombo.getSelectedItem().toString(),
+                zip
+            );
+
+            Status status = fullTimeBtn.isSelected() ? Status.FULLTIME : Status.HOURLY;
+
+            Employee emp = payRoll.createEmployee(
+                id,
+                fNameField.getText(),
+                lNameField.getText(),
+                addr,
+                status
+            );
+
+            PayPeriod period = new PayPeriod(1, start, end);
+
+            int recordID = (int)(Math.random() * 1000);
+
+            if (status == Status.FULLTIME) {
+
+                double salary = Double.parseDouble(salaryField.getText());
+
+                int numMonths = (int)(days / 30);
+                if (numMonths == 0) numMonths = 1;
+
+                payRoll.createPayRecord(
+                    recordID, emp,
+                    0, 0,
+                    salary,
+                    numMonths,
+                    period
+                );
+
+            } else {
+
+                double rate = Double.parseDouble(rateField.getText());
+
+                payRoll.createPayRecord(
+                    recordID, emp,
+                    40,
+                    rate,
+                    0, 0,
+                    period
+                );
+            }
+
+            // ✅ Refresh display cleanly
+            textArea.setText(payRoll.displayPayRecord());
+
+        } catch (NumberFormatException e) {
+            textArea.append("ERROR: Numeric fields must be valid numbers.\n");
+
+        } catch (Exception e) {
+            textArea.append("ERROR: Invalid input. Check date format.\n");
         }
-
-        // Use the methods James finished
-        double fedTax = taxCalc.compFederalTax(grossPay);
-        double stateTax = taxCalc.compStateTax(grossPay);
-        double totalTax = taxCalc.compIncomeTax(grossPay); // Calculates Fed + State
-        double netPay = grossPay - totalTax;
-
-        // --- 3. DISPLAY RESULTS ---
-        textArea.append(String.format("\n%-18s %s", "Employee Status:", (fullTimeBtn.isSelected() ? "Full Time" : "Hourly")));
-        textArea.append(String.format("\n%-18s $ %10.2f", "Gross Pay:", grossPay));
-        textArea.append(String.format("\n%-18s $ %10.2f", "Federal Tax:", fedTax));
-        textArea.append(String.format("\n%-18s $ %10.2f", "State Tax:", stateTax));
-        textArea.append(String.format("\n%-18s $ %10.2f", "Total Tax:", totalTax));
-        textArea.append("\n----------------------------------");
-        textArea.append(String.format("\n%-18s $ %10.2f\n", "Net Pay:", netPay));
-
-		} catch (Exception ex) {
-			textArea.append("ERROR: Check your inputs. Ensure dates are MM/dd/yyyy and pay fields are numeric.\n");
-		}
-	}
+    }
+//    void transfer() {
+//		// 1. Setup the date formatter to match label hint
+//		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+//		sdf.setLenient(false); // Make sure '13/45/2026' is rejected
+//
+//		try {
+//			textArea.setText(""); // Clear previous results
+//            
+//            // 2. Parse the text into Date objects
+//			Date start = sdf.parse(startDateField.getText());
+//			Date end = sdf.parse(endDateField.getText());
+//
+//			// 3. Validation: End date must be after start date
+//			if (!end.after(start)) {
+//				textArea.append("ERROR: End date must be after Start date.\n");
+//				return; // Stop here if date is invalid
+//			}
+//
+//			// 4. Validation: At least one day long (24 hours)
+//			long diffInMillies = Math.abs(end.getTime() - start.getTime());
+//			long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
+//
+//			if (diffInDays < 1) {
+//				textArea.append("ERROR: Pay period must be at least 1 day.\n");
+//				return;
+//			}
+//
+//			// 5. Success! Now we can display the info
+//            textArea.append(String.format("%-18s %s\n", "Validated for:", fNameField.getText()));
+//            textArea.append(String.format("%-18s %d days\n", "Duration:", diffInDays));
+//
+//
+//            // --- 2. INTEGRATE JAMES'S MATH ---
+//        TaxIncome taxCalc = new TaxIncome(); // Now works because you have the real file!
+//        double grossPay = 0.0;
+//
+//        // Pull the pay data from your new fields
+//        if (fullTimeBtn.isSelected()) {
+//            grossPay = Double.parseDouble(salaryField.getText());
+//        } else {
+//            // Logic for hourly: Rate * 40 hours (standard)
+//            grossPay = Double.parseDouble(rateField.getText()) * 40; 
+//        }
+//
+//        // Use the methods James finished
+//        double fedTax = taxCalc.compFederalTax(grossPay);
+//        double stateTax = taxCalc.compStateTax(grossPay);
+//        double totalTax = taxCalc.compIncomeTax(grossPay); // Calculates Fed + State
+//        double netPay = grossPay - totalTax;
+//
+//        // --- 3. DISPLAY RESULTS ---
+//        textArea.append(String.format("\n%-18s %s", "Employee Status:", (fullTimeBtn.isSelected() ? "Full Time" : "Hourly")));
+//        textArea.append(String.format("\n%-18s $ %10.2f", "Gross Pay:", grossPay));
+//        textArea.append(String.format("\n%-18s $ %10.2f", "Federal Tax:", fedTax));
+//        textArea.append(String.format("\n%-18s $ %10.2f", "State Tax:", stateTax));
+//        textArea.append(String.format("\n%-18s $ %10.2f", "Total Tax:", totalTax));
+//        textArea.append("\n----------------------------------");
+//        textArea.append(String.format("\n%-18s $ %10.2f\n", "Net Pay:", netPay));
+//
+//		} catch (Exception ex) {
+//			textArea.append("ERROR: Check your inputs. Ensure dates are MM/dd/yyyy and pay fields are numeric.\n");
+//		}
+//	}
 	  
     void updateTextarea(){
         // Logic for refreshing display goes here
