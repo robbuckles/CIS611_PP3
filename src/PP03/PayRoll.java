@@ -187,7 +187,7 @@ public class PayRoll {
            pw.println(payRecord.toString());
            pw.close();
        } catch (Exception e) {
-           e.printStackTrace();
+           System.out.println("File write error: " + e.getMessage());
        }
 		
 	} 
@@ -222,6 +222,8 @@ public class PayRoll {
        double net = record.netPay();
        totalNetPay += net;
        avgNetPay = totalNetPay / count;
+       
+       writeToFile(record);
 
 
 	}
