@@ -54,12 +54,24 @@ public class PayRecord {
     
     // complete the code to compute the gross pay for the employee based on the employee status
 	public double grossPay(){
-		return 0;
+		if (employee.getEmpStatus() == Status.FULLTIME) {
+	        return montlyIncome * numMonths;
+	    } else {
+	        if (payHours <= REG_HOURS) {
+	            return payHours * payRate;
+	        } else {
+	            double overtime = payHours - REG_HOURS;
+	            return (REG_HOURS * payRate) + (overtime * payRate * OT_RATE);
+	        }
+	    }
 	}
     
   // complete the code in this method to compute the net pay of the employee after taxes (state and federal)
      public double netPay(){
-		  return 0;
+    	 double gross = grossPay();
+    	    double tax = payTax.compIncomeTax(gross);
+
+    	    return gross - tax;
   }
   
  
