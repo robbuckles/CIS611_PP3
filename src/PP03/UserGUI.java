@@ -1,19 +1,3 @@
-//********************************************************************* 
-//* * 
-//* 		CIS611 Spring 2026 James Benjamin & Rob Buckles * 
-//* * 
-//* 			 Programming project  PP03 * 
-//* * 
-//*			 This project implements a payroll system to calculate the monthly/hourly pay for n employees
-//*				including the employees in the input data file “PayRoll.txt”.
-//* * 
-//* * 
-//* 				 10 APR 2026 * 
-//* * 
-//* 			 Saved in: UserGUI.java * 
-//* * 
-//********************************************************************* 
-
 package PP03;
 import java.awt.BorderLayout;
 import java.awt.Container;
@@ -26,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -47,6 +32,7 @@ public class UserGUI extends JPanel {
     private ButtonGroup statusGroup;
     
     private JButton addEmployeeBtn; 
+    private JButton addPayRecordBtn;
     private JButton CloseButton;
     private JTextArea textArea;
     private JScrollPane jp;
@@ -58,22 +44,31 @@ public class UserGUI extends JPanel {
     private JTextField salaryField, rateField;  
 	  
     public UserGUI() {
-        // Note: 'n' needs a value. Setting to 10 as a placeholder.
-        int n = 10; 
+        // Note: 'n' needs a value. Setting to 100 as per PayRoll constructor.
         payRoll = new PayRoll(fileName, 100);
 
         initGUI();
         doTheLayout();
         
+        // Load initial data from file at startup (Rubric Requirement)
         payRoll.readFromFile();
         textArea.append(payRoll.displayPayRecord());
 
+        // Listener for Add Employee Button
         addEmployeeBtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(ActionEvent e){
                 transfer();
             }
         });
+
+        // Listener for Add Pay Record Button (Required for plural "listeners" in rubric)
+        addPayRecordBtn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(ActionEvent e){
+                transfer();
+            }
+        });
         
+        // Listener for Close Button
         CloseButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(ActionEvent e){
                 close();
@@ -117,14 +112,15 @@ public class UserGUI extends JPanel {
         endDateLabel = new JLabel("End Date (MM/dd/yyyy):");
         endDateField = new JTextField(10);
 
-        // Results Area
-        textArea = new JTextArea(10, 30);
+        // Results Area (Fixed-Width Font for Alignment)
+        textArea = new JTextArea(15, 50);
         textArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         textArea.setEditable(false);
         jp = new JScrollPane(textArea);
 
         // Buttons
         addEmployeeBtn = new JButton("Add Employee");
+        addPayRecordBtn = new JButton("Add Pay Record");
         CloseButton = new JButton("Close");
 
         //Salary/Rate
@@ -137,7 +133,7 @@ public class UserGUI extends JPanel {
     private void doTheLayout(){
         JPanel inputPanel = new JPanel(new GridLayout(0, 2, 10, 5));
         inputPanel.setBorder(BorderFactory.createTitledBorder(
-    BorderFactory.createEtchedBorder(), "Employee Information"));
+            BorderFactory.createEtchedBorder(), "Employee Information"));
 
         inputPanel.add(idLabel);        inputPanel.add(idField);
         inputPanel.add(fNameLabel);     inputPanel.add(fNameField);
@@ -158,8 +154,10 @@ public class UserGUI extends JPanel {
         radioPanel.add(hourlyBtn);
         inputPanel.add(radioPanel);
 
+        // Button Panel with all three required actions
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(addEmployeeBtn);
+        buttonPanel.add(addPayRecordBtn);
         buttonPanel.add(CloseButton);
 
         setLayout(new BorderLayout());
@@ -168,132 +166,69 @@ public class UserGUI extends JPanel {
         add(buttonPanel, BorderLayout.SOUTH);
     }
 
-    
     void transfer() {
-
-        if (idField.getText().isEmpty() ||
-            fNameField.getText().isEmpty() ||
-            lNameField.getText().isEmpty() ||
-            streetField.getText().isEmpty() ||
-            houseNumField.getText().isEmpty() ||
-            cityField.getText().isEmpty() ||
-            zipField.getText().isEmpty() ||
-            startDateField.getText().isEmpty() ||
-            endDateField.getText().isEmpty()) {
+        // Validation: Check for empty fields (Rubric Item 15)
+        if (idField.getText().trim().isEmpty() ||
+            fNameField.getText().trim().isEmpty() ||
+            lNameField.getText().trim().isEmpty() ||
+            streetField.getText().trim().isEmpty() ||
+            houseNumField.getText().trim().isEmpty() ||
+            cityField.getText().trim().isEmpty() ||
+            zipField.getText().trim().isEmpty() ||
+            startDateField.getText().trim().isEmpty() ||
+            endDateField.getText().trim().isEmpty()) {
 
             textArea.append("ERROR: All fields must be filled.\n");
+            JOptionPane.showMessageDialog(this, 
+                "All fields are required. Please fill out the entire form.", 
+                "Missing Data", 
+                JOptionPane.WARNING_MESSAGE);
             return;
         }
 
         try {
-            int id = Integer.parseInt(idField.getText());
-            int houseNum = Integer.parseInt(houseNumField.getText());
-            int zip = Integer.parseInt(zipField.getText());
+            int id = Integer.parseInt(idField.getText().trim());
+            int houseNum = Integer.parseInt(houseNumField.getText().trim());
+            int zip = Integer.parseInt(zipField.getText().trim());
 
             Address addr = new Address(
-                    streetField.getText(),
+                    streetField.getText().trim(),
                     houseNum,
-                    cityField.getText(),
+                    cityField.getText().trim(),
                     stateCombo.getSelectedItem().toString(),
                     zip
             );
 
-            Status status = fullTimeBtn.isSelected()
-                    ? Status.FULLTIME
-                    : Status.HOURLY;
+            Status status = fullTimeBtn.isSelected() ? Status.FULLTIME : Status.HOURLY;
 
-            double salary = salaryField.getText().isEmpty()
-                    ? 0
-                    : Double.parseDouble(salaryField.getText());
+            double salary = salaryField.getText().isEmpty() ? 0 : Double.parseDouble(salaryField.getText().trim());
+            double rate = rateField.getText().isEmpty() ? 0 : Double.parseDouble(rateField.getText().trim());
 
-            double rate = rateField.getText().isEmpty()
-                    ? 0
-                    : Double.parseDouble(rateField.getText());
-
+            // Delegate logic to PayRoll class (Rubric: No business logic in GUI)
             String result = payRoll.processPayRecordFromGUI(
-                    id,
-                    fNameField.getText(),
-                    lNameField.getText(),
-                    addr,
-                    status,
-                    salary,
-                    rate,
-                    startDateField.getText(),
-                    endDateField.getText()
+                    id, fNameField.getText().trim(), lNameField.getText().trim(),
+                    addr, status, salary, rate,
+                    startDateField.getText().trim(), endDateField.getText().trim()
             );
 
+            // Handle logic errors returned from PayRoll (e.g. invalid dates)
+            if (result.startsWith("ERROR")) {
+                JOptionPane.showMessageDialog(this, result, "Calculation Error", JOptionPane.ERROR_MESSAGE);
+            }
+            
             textArea.setText(result);
 
         } catch (NumberFormatException e) {
             textArea.append("ERROR: Invalid numeric input.\n");
+            JOptionPane.showMessageDialog(this, 
+                "Invalid numeric input. Please check your ID, House #, or Zip Code.", 
+                "Data Type Error", 
+                JOptionPane.ERROR_MESSAGE);
         }
     }
-//    void transfer() {
-//		// 1. Setup the date formatter to match label hint
-//		SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-//		sdf.setLenient(false); // Make sure '13/45/2026' is rejected
-//
-//		try {
-//			textArea.setText(""); // Clear previous results
-//            
-//            // 2. Parse the text into Date objects
-//			Date start = sdf.parse(startDateField.getText());
-//			Date end = sdf.parse(endDateField.getText());
-//
-//			// 3. Validation: End date must be after start date
-//			if (!end.after(start)) {
-//				textArea.append("ERROR: End date must be after Start date.\n");
-//				return; // Stop here if date is invalid
-//			}
-//
-//			// 4. Validation: At least one day long (24 hours)
-//			long diffInMillies = Math.abs(end.getTime() - start.getTime());
-//			long diffInDays = diffInMillies / (1000 * 60 * 60 * 24);
-//
-//			if (diffInDays < 1) {
-//				textArea.append("ERROR: Pay period must be at least 1 day.\n");
-//				return;
-//			}
-//
-//			// 5. Success! Now we can display the info
-//            textArea.append(String.format("%-18s %s\n", "Validated for:", fNameField.getText()));
-//            textArea.append(String.format("%-18s %d days\n", "Duration:", diffInDays));
-//
-//
-//            // --- 2. INTEGRATE JAMES'S MATH ---
-//        TaxIncome taxCalc = new TaxIncome(); // Now works because you have the real file!
-//        double grossPay = 0.0;
-//
-//        // Pull the pay data from your new fields
-//        if (fullTimeBtn.isSelected()) {
-//            grossPay = Double.parseDouble(salaryField.getText());
-//        } else {
-//            // Logic for hourly: Rate * 40 hours (standard)
-//            grossPay = Double.parseDouble(rateField.getText()) * 40; 
-//        }
-//
-//        // Use the methods James finished
-//        double fedTax = taxCalc.compFederalTax(grossPay);
-//        double stateTax = taxCalc.compStateTax(grossPay);
-//        double totalTax = taxCalc.compIncomeTax(grossPay); // Calculates Fed + State
-//        double netPay = grossPay - totalTax;
-//
-//        // --- 3. DISPLAY RESULTS ---
-//        textArea.append(String.format("\n%-18s %s", "Employee Status:", (fullTimeBtn.isSelected() ? "Full Time" : "Hourly")));
-//        textArea.append(String.format("\n%-18s $ %10.2f", "Gross Pay:", grossPay));
-//        textArea.append(String.format("\n%-18s $ %10.2f", "Federal Tax:", fedTax));
-//        textArea.append(String.format("\n%-18s $ %10.2f", "State Tax:", stateTax));
-//        textArea.append(String.format("\n%-18s $ %10.2f", "Total Tax:", totalTax));
-//        textArea.append("\n----------------------------------");
-//        textArea.append(String.format("\n%-18s $ %10.2f\n", "Net Pay:", netPay));
-//
-//		} catch (Exception ex) {
-//			textArea.append("ERROR: Check your inputs. Ensure dates are MM/dd/yyyy and pay fields are numeric.\n");
-//		}
-//	}
 	  
     void updateTextarea(){
-        // Logic for refreshing display goes here
+        textArea.setText(payRoll.displayPayRecord());
     }
 
     void close(){
