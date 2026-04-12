@@ -1,3 +1,18 @@
+//*********************************************************************
+//*  
+//*         CIS611 Spring 2026 James Benjamin & Rob Buckles  
+//*  
+//*              Programming project  PP03  
+//*  
+//*          This class is the PayRecords, and calculation of pay.  
+//*          
+//*  
+//*  
+//*                  12 APR 2026  
+//*  
+//*              Saved in: PayRecord.java  
+//*  
+//*********************************************************************
 package PP03;
 
 
@@ -101,5 +116,31 @@ public class PayRecord {
 
          return sb.toString();
      }
+     
+     public String toFileString() {
+
+    	    double gross = grossPay();
+    	    double tax = payTax.compIncomeTax(gross);
+    	    double net = netPay();
+
+    	    StringBuilder sb = new StringBuilder();
+
+    	    sb.append(rID).append(", ");
+    	    sb.append(employee.getEID()).append(", ");
+    	    sb.append(employee.getEmpStatus()).append(", ");
+
+    	    if (employee.getEmpStatus() == Status.FULLTIME) {
+    	        sb.append(montlyIncome).append(", ");
+    	        sb.append(numMonths).append(", ");
+    	    } else {
+    	        sb.append(payHours).append(", ");
+    	        sb.append(payRate).append(", ");
+    	    }
+
+    	    sb.append(payPeriod.toString()).append(", ");
+    	    sb.append(String.format("%.2f, %.2f, %.2f", gross, tax, net));
+
+    	    return sb.toString();
+    	}
 
 }
