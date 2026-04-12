@@ -1,3 +1,18 @@
+//*********************************************************************
+//*  
+//*         CIS611 Spring 2026 James Benjamin & Rob Buckles  
+//*  
+//*              Programming project  PP03  
+//*  
+//*          This class is the Pay Period collector.  
+//*          
+//*  
+//*  
+//*                  12 APR 2026  
+//*  
+//*              Saved in: PayPeriod.java  
+//*  
+//*********************************************************************
 package PP03;
 
 import java.util.Date;
