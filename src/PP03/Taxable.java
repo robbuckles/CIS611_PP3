@@ -1,3 +1,18 @@
+//*********************************************************************
+//*  
+//*         CIS611 Spring 2026 James Benjamin & Rob Buckles  
+//*  
+//*              Programming project  PP03  
+//*  
+//*          This class is the static values for taxes. 
+//*          
+//*  
+//*  
+//*                  12 APR 2026  
+//*  
+//*              Saved in: Taxable.java  
+//*  
+//*********************************************************************
 package PP03;
 
 public interface Taxable {
