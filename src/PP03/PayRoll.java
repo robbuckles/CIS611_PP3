@@ -24,6 +24,12 @@ public class PayRoll {
 		this.fileName = fileName;
                // int n = 0;
 				this.payRecords = new PayRecord[n];
+				
+				try {
+			        new PrintWriter("PayRecord.txt").close();
+			    } catch (Exception e) {
+			        System.out.println("Error clearing file: " + e.getMessage());
+			    }		
 		
 	}
 	
