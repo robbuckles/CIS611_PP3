@@ -1,3 +1,19 @@
+//*********************************************************************
+//*  
+//*         CIS611 Spring 2026 James Benjamin & Rob Buckles  
+//*  
+//*              Programming project  PP03  
+//*  
+//*          This class is the PayRoll methods to read files, write files, and 
+//*			display and process the data entered in the form.
+//*          
+//*  
+//*  
+//*                  12 APR 2026  
+//*  
+//*              Saved in: PayRoll.java  
+//*  
+//*********************************************************************
 package PP03;
 
 import java.text.DateFormat;
@@ -14,6 +30,7 @@ public class PayRoll {
 	private String fileName;
 	private PayRecord[] payRecords;
 	private int count = 0;
+	
 	
 	
 	private  double totalNetPay;
