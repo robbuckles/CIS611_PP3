@@ -1,3 +1,21 @@
+//*********************************************************************
+//*  
+//*         CIS611 Spring 2026 James Benjamin & Rob Buckles  
+//*  
+//*              Programming project  PP03  
+//*  
+//*          This class is the GUI for the PayRoll application.
+//*      It collects user input, displays results, and interacts with
+//*      the PayRoll class to process employee data and pay records.  
+//*          
+//*  
+//*  
+//*                  12 APR 2026  
+//*  
+//*              Saved in: UserGUI.java  
+//*  
+//*********************************************************************
+
 package PP03;
 import java.awt.BorderLayout;
 import java.awt.Container;
