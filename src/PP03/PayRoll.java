@@ -159,9 +159,13 @@ public class PayRoll {
 	                // Add to array
 	                payRecords[count++] = record;
 
-	                double net = record.netPay();
-	                totalNetPay += net;
-	                avgNetPay = totalNetPay / count;
+	             // update stats
+	             double net = record.netPay();
+	             totalNetPay += net;
+	             avgNetPay = totalNetPay / count;
+
+	             // ✅ ADD THIS LINE
+	             writeToFile(record);
 
 
 	            }
@@ -182,9 +186,11 @@ public class PayRoll {
    public void writeToFile(PayRecord payRecord){
 		
 		// write employees' pay records to the PayRecord.txt file, it should add employee pay record to the current file data
+	   
+	   
 	   try {
            PrintWriter pw = new PrintWriter(new FileWriter("PayRecord.txt", true));
-           pw.println(payRecord.toString());
+           pw.println(payRecord.toFileString());
            pw.close();
        } catch (Exception e) {
            System.out.println("File write error: " + e.getMessage());
@@ -267,68 +273,74 @@ public class PayRoll {
 	        double rate,
 	        String startDateStr,
 	        String endDateStr
+	        
 	) {
-	    try {
-	        SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
-	        sdf.setLenient(false);
+	   try {
+		    SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/yyyy");
+		    sdf.setLenient(false);
 
-	        Date start = sdf.parse(startDateStr);
-	        Date end = sdf.parse(endDateStr);
+		    Date start = sdf.parse(startDateStr);
+		    Date end = sdf.parse(endDateStr);
 
-	        if (!end.after(start)) {
-	            return "ERROR: End date must be after start date.";
-	        }
+		    // ✅ Step 1: Validate date order
+		    if (!end.after(start)) {
+		        return "ERROR: End date must be after start date.";
+		    }
 
-	        long diff = end.getTime() - start.getTime();
-	        long days = diff / (1000 * 60 * 60 * 24);
+		    // ✅ Step 2: Calculate days
+		    long diff = end.getTime() - start.getTime();
+		    long days = diff / (1000 * 60 * 60 * 24);
 
-	        if (days < 1) {
-	            return "ERROR: Pay period must be at least 1 day.";
-	        }
+		    if (days < 1) {
+		        return "ERROR: Pay period must be at least 1 day.";
+		    }
 
-	        Employee emp = createEmployee(id, fName, lName, addr, status);
+		    // ✅ Step 3: Calculate max months
+		    int maxMonths = (int)(days / 30);
+		    if (maxMonths < 1) maxMonths = 1;
 
-	        PayPeriod period = new PayPeriod(
-	                (int)(Math.random() * 1000),
-	                start,
-	                end
-	        );
+		    Employee emp = createEmployee(id, fName, lName, addr, status);
 
-	        int recordID = (int)(Math.random() * 1000);
+		    PayPeriod period = new PayPeriod(
+		            (int)(Math.random() * 1000),
+		            start,
+		            end
+		    );
 
-	        if (status == Status.FULLTIME) {
+		    int recordID = (int)(Math.random() * 1000);
 
-	            int numMonths = (int)(days / 30);
-	            if (numMonths < 1) numMonths = 1;
+		    if (status == Status.FULLTIME) {
 
-	            createPayRecord(
-	                    recordID,
-	                    emp,
-	                    0,
-	                    0,
-	                    salary,
-	                    numMonths,
-	                    period
-	            );
+		        int numMonths = maxMonths; // safe value
 
-	        } else {
+		        createPayRecord(
+		                recordID,
+		                emp,
+		                0,
+		                0,
+		                salary,
+		                numMonths,
+		                period
+		        );
 
-	            createPayRecord(
-	                    recordID,
-	                    emp,
-	                    40,
-	                    rate,
-	                    0,
-	                    0,
-	                    period
-	            );
-	        }
+		    } else {
 
-	        return displayPayRecord();
+		        createPayRecord(
+		                recordID,
+		                emp,
+		                40,
+		                rate,
+		                0,
+		                0,
+		                period
+		        );
+		    }
 
-	    } catch (Exception e) {
-	        return "ERROR: Invalid input or date format.";
-	    }
-	}
+		    return displayPayRecord();
 
+		} catch (Exception e) {
+		    return "ERROR: Invalid input or date format.";
+		}
+
+}
 }
